@@ -1,10 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{{template "base" .}}
+{{define "title"}}Snippet #{{.Snippet.ID}}{{end}}
+{{define "main"}}
+    {{with .Snippet}}
+        <div class='snippet'>
+            <div class='metadata'>
+                <span>#{{.ID}}</span>
+                <strong>{{.Company}}</strong>
+            </div>
+{{/*            <pre><code>{{.Content}}</code></pre>*/}}
+            <pre><p>{{.Content}}</p></pre>
+            <div class=''>
+                <pre><code>Company created: {{.Created}}</code></pre>
+            </div>
+            <div class=''>
+                <pre><code>Update: {{.Update}}</code></pre>
+            </div>
+            <div class=''>
+                <pre><code>Founder: {{.Founder}}</code></pre>
+            </div>
+            <div>
+            <pre><code>Profits:{{.Profits}}</code></pre>
+            </div>
+            <div>
+                <pre><code>Capitalization:{{.Capital}}</code></pre>
+            </div>
+            <div>
+                <pre><code>Location:{{.Location}}</code></pre>
+            </div>
+            <div>
+                <pre><code>Number of employees:{{.Employees}}</code></pre>
+            </div>
+
+        </div>
+    {{end}}
+{{end}}

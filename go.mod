@@ -8,4 +8,6 @@ require (
 	github.com/jackc/pgtype v1.5.0
 	github.com/jackc/pgx/v4 v4.9.0
 	github.com/justinas/alice v1.2.0
+	github.com/justinas/nosurf v1.1.1
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 )

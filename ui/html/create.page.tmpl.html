@@ -1,0 +1,75 @@
+{{template "base" .}}
+{{define "title"}}Create a New Snippet{{end}}
+{{define "main"}}
+    <form action='/company/create' method='POST'>
+        {{with .Form}}
+            <div>
+                <label>Company Name:</label>
+                {{with .Errors.Get "company"}}
+                    <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' name='company' value='{{.Get "company"}}'>
+            </div>
+                <div>
+                    <label>Creation of Company:</label>
+                    {{with .Errors.Get "created"}}
+                        <label class='error'>{{.}}</label>
+                    {{end}}
+                    <input type='text' name='created' value='{{.Get "created"}}'>
+                </div>
+                <div>
+                    <label>Update of product:</label>
+                    {{with .Errors.Get "update"}}
+                        <label class='error'>{{.}}</label>
+                    {{end}}
+                    <input type='text' name='update' value='{{.Get "update"}}'>
+                </div>
+                <div>
+                    <label>Founder:</label>
+                    {{with .Errors.Get "founder"}}
+                        <label class='error'>{{.}}</label>
+                    {{end}}
+                    <input type='text' name='founder' value='{{.Get "founder"}}'>
+                </div>
+                    <div>
+                        <label>Location:</label>
+                        {{with .Errors.Get "location"}}
+                            <label class='error'>{{.}}</label>
+                        {{end}}
+                        <input type='text' name='location' value='{{.Get "location"}}'>
+                    </div>
+                <div>
+                    <label>Profits of Company:</label>
+                    {{with .Errors.Get "profits"}}
+                        <label class='error'>{{.}}</label>
+                    {{end}}
+                    <input type='text' name='profits' value='{{.Get "profits"}}'>
+                </div>
+            <div>
+                <label>Capitalization:</label>
+                {{with .Errors.Get "capital"}}
+                    <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' name='capital' value='{{.Get "capital"}}'>
+            </div>
+            <div>
+                <label>Number of employees:</label>
+                {{with .Errors.Get "employees"}}
+                    <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' name='employees' value='{{.Get "employees"}}'>
+            </div>
+                <div>
+                <label>Description:</label>
+                {{with .Errors.Get "content"}}
+                    <label class='error'>{{.}}</label>
+                {{end}}
+                <textarea name='content'>{{.Get "content"}}</textarea>
+            </div>
+
+            <div>
+                <input type='submit' value='Add'>
+            </div>
+        {{end}}
+    </form>
+{{end}}

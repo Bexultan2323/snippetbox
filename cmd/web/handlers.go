@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 )
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		app.notFound(w)
@@ -25,8 +26,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
-func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) show(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get(":id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
@@ -42,53 +42,128 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	flash := app.session.PopString(r, "flash")
 	app.render(w, r, "show.page.tmpl.html", &templateData{
-		Flash:flash,
+		Flash:   flash,
 		Snippet: snippet,
 	})
 
-
-
-
 }
 
-
-
-func (app *application) createSnippetForm(w http.ResponseWriter, r *http.Request) {
+func (app *application) createForm(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "create.page.tmpl.html", &templateData{
 		Form: forms.New(nil),
 	})
 }
-func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) create(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	//form := forms.New(r.PostForm)
-	//form.Required("title", "content", "expires")
-	//form.MaxLength("title", 100)
-	//form.PermittedValues("expires", "2021-12-15", "2020-11-16", "2020-11-11")
-
 	form := forms.New(r.PostForm)
-	form.Required("title", "content", "expires","created","profits")
-	form.MaxLength("title", 100)
+	form.Required("company", "content", "update", "created", "profits", "founder", "location")
+	form.MaxLength("company", 100)
 
 	if !form.Valid() {
 		app.render(w, r, "create.page.tmpl.html", &templateData{Form: form})
 		return
 	}
 
-	id, err := app.snippets.Insert(form.Get("title"), form.Get("content"),form.Get("created"), form.Get("expires"),form.Get("profits"))
+	id, err := app.snippets.Insert(form.Get("company"), form.Get("content"),
+		form.Get("created"), form.Get("update"), form.Get("profits"),
+		form.Get("founder"), form.Get("location"), form.Get("employees"), form.Get("capital"))
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 	app.session.Put(r, "flash", "Company successfully added!")
 
-	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/company/%d", id), http.StatusSeeOther)
 }
 
+func (app *application) signupUserForm(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, "signup.page.tmpl.html", &templateData{
+		Form: forms.New(nil),
+	})
+}
+
+func (app *application) signupUser(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("name", "email", "password")
+	form.MaxLength("name", 255)
+	form.MaxLength("email", 255)
+	form.MatchesPattern("email", forms.EmailRX)
+	form.MinLength("password", 10)
+
+	if !form.Valid() {
+		app.render(w, r, "signup.page.tmpl.html", &templateData{Form: form})
+		return
+	}
+	err = app.users.Insert(form.Get("name"), form.Get("email"), form.Get("password"))
+	if err != nil {
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			form.Errors.Add("email", "Address is already in use")
+			app.render(w, r, "signup.page.tmpl.html", &templateData{Form: form})
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+	app.session.Put(r, "flash", "Your signup was successful. Please log in.")
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, "login.page.tmpl.html", &templateData{
+		Form: forms.New(nil),
+	})
+}
+
+func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	id, err := app.users.Authenticate(form.Get("email"), form.Get("password"))
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			form.Errors.Add("generic", "Email or Password is incorrect")
+			app.render(w, r, "login.page.tmpl.html", &templateData{Form: form})
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	app.session.Put(r, "authenticatedUserID", id)
+	http.Redirect(w, r, "/company/create", http.StatusSeeOther)
+}
+func (app *application) logoutUser(w http.ResponseWriter, r *http.Request) {
+	app.session.Remove(r, "authenticatedUserID")
+	app.session.Put(r, "flash", "You've been logged out successfully!")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) delete(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	rId := r.PostForm.Get("deleteButton")
+	id, _ := strconv.Atoi(rId)
+
+	err = app.snippets.Delete(id)
+	http.Redirect(w, r, "/", 303)
+}
